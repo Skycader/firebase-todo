@@ -1,34 +1,87 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState, useReducer, useEffect } from "react";
+import style from "./App.module.less";
+import { AddTodo } from "./components/addTodo/addTodo";
+import { EditTodo } from "./components/editTodo/editTodo";
+import { Modal } from "./components/modal/modal";
+import TodoList from "./components/TodoList/TodoList";
+import { Context } from "./context/context";
+import reducer from "./reducer";
+
+import {
+  query,
+  collection,
+  onSnapshot,
+  updateDoc,
+  doc,
+  addDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { db } from "./firebase";
+import { ITodo } from "./models/context";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [todoTitle, setTodoTitle] = useState();
+  const [state, dispatch] = useReducer(reducer, {
+    modal: false,
+    current: {}
+  });
+
+  const toggleAdd = () => {
+    dispatch({
+      type: "toggleAdd",
+    });
+  };
+
+   const [tasks, setTasks] = useState([])
+
+   useEffect(() => {
+    const q = query(collection(db, 'todos'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      let ts:ITodo[] = [] 
+      querySnapshot.forEach((doc) => {
+      ts.push({ ...doc.data(), id: doc.id });
+     
+      });
+       setTasks(ts)
+       console.log(ts)
+    });
+  },[] )
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Context.Provider
+      value={{
+        dispatch,
+      }}
+    >
+
+      <div className="container">
+        <h1>📒Todo app</h1>
+        <h1/>
+        <div className={style.add}>
+          <a
+            onClick={() => toggleAdd()}
+            className="btn-floating btn-large waves-effect waves-light red"
+          >
+            <i className="material-icons">add</i>
+          </a>
+        </div>
+
+        <TodoList todos={tasks} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+
+      {state.modalAdd && (
+        <Modal>
+          <AddTodo></AddTodo>
+        </Modal>
+      )}
+      {state.modalEdit && (
+        <Modal>
+          <EditTodo todo={state.current}></EditTodo>
+        </Modal>
+      )}
+      
+    </Context.Provider>
+  );
 }
 
-export default App
+export default App;
