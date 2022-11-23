@@ -11,28 +11,37 @@ import {
 } from "firebase/storage";
 import { storage } from "./../../firebase";
 import dayjs from 'dayjs'
-import { ITodo } from "../../models/context";
+import { ITodo, ITodoEdit } from "../../models/context";
 
-const EditTodo = (props: any) => {
+/**
+ * Functional component to fill the contents of modal when editing
+ * @param props ITodoEdit
+ * @returns TSX form to edit todo
+ */
+const EditTodo = (props: ITodoEdit) => {
+
   const [title, setTitle] = useState(props.todo.title);
   const [description, setDescription] = useState(props.todo.description);
   const { dispatch } = useContext(Context);
-  const [todoUpload, setTodoUpload] = useState(null);
-  const [todoUrls, setTodoUrls] = useState([]);
-  const [todoNames, setTodoNames] = useState([]);
+  const [todoUpload, setTodoUpload] = useState<string[]>([]);
+  const [todoUrls, setTodoUrls] = useState<string[]>([]);
+  const [todoNames, setTodoNames] = useState<string[]>([]);
   const [date, setDate] = useState(dayjs(props.todo.time).format('YYYY-MM-DD'));
   const [time, setTime] = useState(dayjs(props.todo.time).format('HH:mm'));
 
   const updateTodo = async (todo: ITodo) => {
-    await updateDoc(doc(db, "todos", todo.id), {
-      // completed: !todo.completed,
+    /* Sorry, but I have no idea why it doesn't work with typescript here! Mb you show me how it's fixed? */
+    /* It's taken from documentation by the way */
+    const todoRf = doc(db, "todos", todo.id);
+
+    await updateDoc(todoRf, {
       title,
       description,
       time: dayjs(date+" "+time).valueOf()
     });
   };
 
-  const deleteTodo = async (id: number) => {
+  const deleteTodo = async (id: string) => {
     await deleteDoc(doc(db, "todos", id));
   };
 
@@ -109,7 +118,7 @@ const EditTodo = (props: any) => {
             type="file"
             multiple
             onChange={(event) => {
-              setTodoUpload(event.target.files[0]);
+              if (event.target?.files) setTodoUpload(event.target.files[0]);
             }}
           />
         </div>
@@ -132,7 +141,7 @@ const EditTodo = (props: any) => {
 
             uploadFile();
             dispatch({
-              type: "toggleEdit",
+              type: "closeEdit",
             });
           }}
           className="col s12 l3 btn waves-effect waves-light"
@@ -146,7 +155,7 @@ const EditTodo = (props: any) => {
         <button
           onClick={() => {
             dispatch({
-              type: "toggleEdit",
+              type: "closeEdit",
             });
           }}
           className="col l4 s12 btn waves-effect waves-light"
@@ -162,7 +171,7 @@ const EditTodo = (props: any) => {
             deleteTodo(props.todo.id);
              
             dispatch({
-              type: "toggleEdit",
+              type: "closeEdit",
             });
           }}
           className="col l3 s12 btn waves-effect waves-light red"

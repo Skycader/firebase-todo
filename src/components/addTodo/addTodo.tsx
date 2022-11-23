@@ -13,12 +13,26 @@ import {
 import { db, storage } from "../../firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import dayjs from "dayjs";
-
+import { IUpload } from "../../models/context";
+  /**
+ * Functional component to fill the contents of modal when creating todo
+ * @param props ITodoEdit
+ * @returns TSX form to edit todo
+ */
 const AddTodo = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const { dispatch } = useContext(Context);
+  const [todoUrls, setTodoUrls] = useState<string[]>([]);
+  const [todoUpload, setTodoUpload] = useState<Blob&IUpload>();
 
+  const [date, setDate] = useState<string>("");
+  const [time, setTime] = useState<string>("");
+
+
+/**
+ * createTodo function to add a document to Firebase
+ */
   const createTodo = async () => {
     let res = await addDoc(collection(db, "todos"), {
       title,
@@ -29,7 +43,8 @@ const AddTodo = () => {
 
     const uploadFile = () => {
       if (!todoUpload) return;
-      const todoRef = ref(storage, `${res.id}/${todoUpload.name}`);
+      let {name} = todoUpload
+      const todoRef = ref(storage, `${res.id}/${name}`);
       uploadBytes(todoRef, todoUpload).then((snapshot) => {
         getDownloadURL(snapshot.ref).then((url) => {
           setTodoUrls((prev) => [...prev, url]);
@@ -39,11 +54,7 @@ const AddTodo = () => {
 
     uploadFile();
   };
-  const [todoUrls, setTodoUrls] = useState([]);
-  const [todoUpload, setTodoUpload] = useState(null);
-
-  const [date, setDate] = useState();
-  const [time, setTime] = useState();
+  
   return (
     <div className="container ">
       <h2>Todo</h2>
@@ -88,6 +99,7 @@ const AddTodo = () => {
           <input
             type="file"
             onChange={(event) => {
+              if (event?.target?.files)
               setTodoUpload(event.target.files[0]);
             }}
             multiple

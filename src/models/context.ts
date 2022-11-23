@@ -1,21 +1,35 @@
+
+
 interface IContext {
   modalAdd: boolean;
   modalEdit: boolean;
-  modal: boolean;
-  todos: ITodo[];
+  todos?: ITodo[];
+  current?: ITodo;
 }
 
+interface IDoc {
+  id: string,
+  data: Function
+}
+
+interface IUpload {
+  name: string
+}
+interface ITodoEdit {
+  todo: ITodo
+}
 interface ITodo {
   id: number;
   title: string;
   completed: boolean;
-  deadline: number;
+  time: number;
+  description: string;
   files: string[];
 }
 
 interface IAction {
   type: string;
-  payload: IPayload;
+  payload: IPayload
 }
 
 interface IPayload {
@@ -27,4 +41,4 @@ interface IPayload {
   completed: boolean;
   files: string[];
 }
-export type { IContext, IAction, ITodo };
+export type { IContext, IAction, ITodo, IDoc, IUpload, ITodoEdit };

@@ -15,37 +15,46 @@ import {
   doc,
   addDoc,
   deleteDoc,
-} from 'firebase/firestore';
+} from "firebase/firestore";
 import { db } from "./firebase";
-import { ITodo } from "./models/context";
+import { IContext, IDoc, ITodo } from "./models/context";
 
 function App() {
-  const [todoTitle, setTodoTitle] = useState();
-  const [state, dispatch] = useReducer(reducer, {
-    modal: false,
-    current: {}
-  });
+  const [todoTitle, setTodoTitle] = useState<ITodo[]>();
+  const initialValue = {
+    modalAdd: false,
+    modalEdit: false,
+  };
+  const [state, dispatch] = useReducer(reducer, initialValue);
 
   const toggleAdd = () => {
     dispatch({
       type: "toggleAdd",
+      payload: {
+        id: 0,
+        title: "",
+        time: Date.now(),
+        completed: false,
+        description: "",
+        modal: false,
+        files: [],
+      },
     });
   };
 
-   const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState<ITodo[]>([]);
 
-   useEffect(() => {
-    const q = query(collection(db, 'todos'));
+  useEffect(() => {
+    const q = query(collection(db, "todos"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      let ts:ITodo[] = [] 
-      querySnapshot.forEach((doc) => {
-      ts.push({ ...doc.data(), id: doc.id });
-     
+      let ts: ITodo[] = [];
+      querySnapshot.forEach((doc: IDoc) => {
+        ts.push({ ...doc.data(), id: doc.id });
       });
-       setTasks(ts)
-       console.log(ts)
+      setTasks(ts);
+      console.log(ts);
     });
-  },[] )
+  }, []);
 
   return (
     <Context.Provider
@@ -53,10 +62,18 @@ function App() {
         dispatch,
       }}
     >
+      {!tasks.length && (
+        <div
+          style={{ margin: 0, top: 0, position: "fixed", zIndex: 4 }}
+          className="progress"
+        >
+          <div className="indeterminate"></div>
+        </div>
+      )}
 
       <div className="container">
         <h1>📒Todo app</h1>
-        <h1/>
+        <h1 />
         <div className={style.add}>
           <a
             onClick={() => toggleAdd()}
@@ -66,7 +83,7 @@ function App() {
           </a>
         </div>
 
-        <TodoList todos={tasks} />
+        <TodoList todos={tasks} modalAdd={false} modalEdit={false} />
       </div>
 
       {state.modalAdd && (
@@ -76,10 +93,9 @@ function App() {
       )}
       {state.modalEdit && (
         <Modal>
-          <EditTodo todo={state.current}></EditTodo>
+          {state.current && <EditTodo todo={state.current}></EditTodo>}
         </Modal>
       )}
-      
     </Context.Provider>
   );
 }

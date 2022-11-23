@@ -3,7 +3,14 @@ import { doc, updateDoc } from "firebase/firestore";
 import React, { useContext } from "react";
 import { Context } from "../../context/context";
 import { db } from "../../firebase";
-export default function TodoItem(props: any) {
+import { ITodo } from "../../models/context";
+
+/**
+ * Functional component to display a todo item
+ * @param props of interface Todo
+ * @returns TSX <li> containing title, description, deadline, files and buttons to control it
+ */
+export default function TodoItem(props: ITodo) {
   let { title, id, completed, description, time } = props;
   const { dispatch } = useContext(Context);
 
@@ -37,7 +44,7 @@ export default function TodoItem(props: any) {
           onClick={(e) => {
             e.preventDefault();
             dispatch({
-              type: "toggleEdit",
+              type: "openEdit",
               payload: {
                 id,
                 title,

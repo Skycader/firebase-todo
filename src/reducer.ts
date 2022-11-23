@@ -1,6 +1,12 @@
 import { IContext, IAction, ITodo } from "./models/context";
 
-export default function (state: IContext, action: IAction) {
+/**
+ * Reducer to control adding, editing, modals
+ * @param state IContext
+ * @param action IAction
+ * @returns state of IContext
+ */
+export default function (state: IContext, action: IAction): IContext {
   switch (action.type) {
     case "toggleAdd":
       return {
@@ -8,46 +14,35 @@ export default function (state: IContext, action: IAction) {
         modalAdd: !state.modalAdd,
       };
 
-    case "toggleEdit":
+    case "openEdit":
       return {
         ...state,
-        modalEdit: !state.modalEdit,
+        modalEdit: true,
         current: {
-          id: action?.payload?.id,
-          title: action?.payload?.title,
-          description: action?.payload?.description,
-          time: action?.payload?.time
+          id: action.payload.id,
+          title: action.payload.title,
+          description: action.payload.description,
+          time: action.payload.time,
+          completed: action.payload.completed,
+          files: [],
         },
+      };
+    case "closeEdit":
+      return {
+        ...state,
+        modalEdit: false,
       };
     case "editTodo":
       return {
         ...state,
-        todos: state.todos.map((todo: ITodo) => {
+        todos: state?.todos?.map((todo: ITodo) => {
           console.log(action.payload);
-          if (todo.id === action.payload.id) {
+          if (todo.id === action?.payload?.id) {
             todo.title = action.payload.title;
           }
           return todo;
         }),
       };
-
-    case "removeTodo":
-      return {
-        ...state,
-        todos: state.todos.filter((todo) => todo.id !== action.payload.id),
-      };
-    case "addTodo":
-      return {
-        ...state,
-        todos: [
-          ...state.todos,
-          {
-            id: Date.now(),
-            title: action.payload.title,
-          },
-        ],
-      };
-
 
     default:
       return state;
